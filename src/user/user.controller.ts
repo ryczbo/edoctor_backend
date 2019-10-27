@@ -1,0 +1,58 @@
+import * as express from 'express';
+import NotAuthorizedException from '../exceptions/NotAuthorizedException';
+import Controller from '../interfaces/controller.interface';
+import RequestWithUser from '../interfaces/requestWithUser.interface';
+import authMiddleware from '../middleware/auth.middleware';
+import userModel from "./user.model";
+import {User} from "../../../e-doctor/src/app/_models/user";
+
+class UserController implements Controller {
+    public path = '/users';
+    public router = express.Router();
+    private user = userModel;
+
+    constructor() {
+        this.initializeRoutes();
+    }
+
+    private initializeRoutes() {
+        this.router.get(this.path, this.getAllUsers);
+        this.router.get(`/users/:id`, this.getUserById);
+        this.router.patch(`/users/:id`, this.updateUserData)
+    }
+
+    private getAllUsers = async (request: express.Request, response: express.Response) => {
+            const users = await this.user.find();
+            if(users) {
+                response.send(users);
+                return;
+            } else {
+                console.log('no users');
+            }
+        // next(new NotAuthorizedException());
+    };
+
+    private getUserById = async (request: express.Request, response: express.Response) => {
+        const id = request.params.id;
+        const user = await this.user.findById(id);
+        if(user) {
+            response.send(user);
+            return;
+        } else {
+            console.log('user not found');
+        }
+    };
+
+    private updateUserData = (request: express.Request, response: express.Response, next: express.NextFunction) => {
+        const id = request.body._id;
+        const userData = request.body;
+        this.user.findByIdAndUpdate(id, userData)
+            .then((user) => {
+                if(user) {
+                    response.send(user);
+                }
+            });
+    }
+}
+
+export default UserController;

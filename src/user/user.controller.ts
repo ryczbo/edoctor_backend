@@ -43,12 +43,13 @@ class UserController implements Controller {
         }
     };
 
-    private updateUserData = (request: express.Request, response: express.Response, next: express.NextFunction) => {
+    private updateUserData = async (request: express.Request, response: express.Response) => {
         const id = request.body._id;
         const userData = request.body;
-        this.user.findByIdAndUpdate(id, userData)
+        this.user.findByIdAndUpdate(id, userData, {'new': true})
             .then((user) => {
                 if(user) {
+                    console.log(user);
                     response.send(user);
                 }
             });
